@@ -1,0 +1,34 @@
+Patch script.
+
+
+ 
+Chad's Patch script
+
+#!/bin/bash
+
+if [ -z "$1" ]
+then
+  echo "ERROR: You must supply a server list"
+  exit 1
+fi
+
+SERVERFILE="$1"
+
+if [ ! -s "$SERVERFILE" ]
+then
+  echo "ERROR: File does not exist: $SERVERFILE"
+  exit 1
+fi
+
+for SERVER in $(cat $SERVERFILE)
+do
+  echo -n "Updating $SERVER..."
+  VER=$(rosh -l root -n prd-vlnxmgt02 -t "cat /etc/redhat-release")
+  DATE=$(date)
+  echo "$SERVER : $DATE " > ${SERVER}-info.txt
+  echo "---------------------------------------------" >> ${SERVER}-info.txt
+  rosh -l root -n prd-vlnxmgt02 -t "yum history" >> ${SERVER}-info.txt
+  rosh -l root -n $SERVER -t "yum update -y -q" &> /dev/null
+  echo "                DONE"
+done
+
